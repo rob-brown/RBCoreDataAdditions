@@ -68,7 +68,7 @@ static RBCoreDataManager * sharedManager = nil;
 }
 
 - (NSString *)modelExtension {
-    return @"PersistentStore.sqlite";
+    return @"momd";
 }
 
 - (NSString *)persistentStoreName {

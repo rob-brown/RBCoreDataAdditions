@@ -35,7 +35,7 @@ On top of all this, by having this code in a centralized location, adding a feat
 You may also be interested in my [`RBReporter`][3] class. It is great for logging and repoprting Core Data errors.
 
 ##How To use
-`RBCoreDataAdditions` is meant to be dropped into your app with little effort on your part. If you want to customize the name of your persistent store file, name of MOM file, etc you can either provide an `RBCoreDataManagerDelegate` or modify the delegate calls within `RBCoreDataManager.m`. This flexibility is nice so you don't accidentally commit your constants to the main repo. NOTE: The delegate should be set at launch and never changed. Here are the current options defined in `RBCoreDataManagerDelegate`:
+`RBCoreDataAdditions` is meant to be dropped into your app with little effort on your part. If you want to customize the name of your persistent store file, name of MOM file, etc you can either provide an `RBCoreDataManagerDelegate` or modify the delegate calls within `RBCoreDataManager.m`. This flexibility is nice so you don't accidentally commit your constants to the main repo. If you create a singleton, I recommend creating a singleton or using the app delegate. NOTE: The delegate should be set at launch and never changed. Here are the current options defined in `RBCoreDataManagerDelegate`:
 
 ```objective-c
 @protocol RBCoreDataManagerDelegate <NSObject>
