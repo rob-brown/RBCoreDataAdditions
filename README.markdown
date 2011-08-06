@@ -19,7 +19,7 @@ In response, `RBCoreDataAdditions` remedies each of these problems:
  
  3. `RBCoreDataAdditions` adds standard, lockless thread-safety through context merge notifications. 
  
- 4. Automatic, lightweight migration is turned on by default.
+ 4. Automatic, lightweight migration is turned on by default but you may opt out by changing one line.
 
 On top of all this, by having this code in a centralized location, adding a feature here gives that feature to everyone else. You could never do this with your app delegates.
 
@@ -35,27 +35,38 @@ On top of all this, by having this code in a centralized location, adding a feat
 You may also be interested in my [`RBReporter`][3] class. It is great for logging and repoprting Core Data errors.
 
 ##How To use
-`RBCoreDataAdditions` is meant to be dropped into your app with little effort on your part. If you want to customize the name of your persistent store files and MOM files, then you can change those options in `RBCoreDataManager.m`. Here are the options that you can edit:
+`RBCoreDataAdditions` is meant to be dropped into your app with little effort on your part. If you want to customize the name of your persistent store file, name of MOM file, etc you can either provide an `RBCoreDataManagerDelegate` or modify the delegate calls within `RBCoreDataManager.m`. This flexibility is nice so you don't accidentally commit your constants to the main repo. NOTE: The delegate should be set at launch and never changed. Here are the current options defined in `RBCoreDataManagerDelegate`:
 
 ```objective-c
-/// The name of your Managed Object Model file (without extenstion).
-NSString * const kModelName = @"Model";
+@protocol RBCoreDataManagerDelegate <NSObject>
 
-/// The extension of your Managed Object Model file (typically @"momd" or @"mom").
-NSString * const kModelExtension = @"momd";
+/**
+ * Returns true if you want to use automatic, lightweight migration.
+ */
+- (BOOL)shouldUseAutomaticLightweightMigration;
 
-/// The name of your persistent store file, if applicable.
-NSString * const kPersistentStoreName = @"PersistentStore.sqlite";
-```
+/**
+ * Returns the filename of the MOM (without extension).
+ */
+- (NSString *)modelName;
 
-It is assumed that you are going to use the `NSSQLiteStoreType`, but you can also change that where the NSPersistenStoreCoordinator is created.
+/**
+ * The extension to use for the MOM file (typically momd or mom).
+ */
+- (NSString *)modelExtension;
 
-```objective-c
-[persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType  // You can change the store type here.
-                                	     configuration:nil 
-                                                   URL:storeURL 
-                                               options:options 
-                                                 error:&error];
+/**
+ * Returns the filename to use for the persistent store.
+ */
+- (NSString *)persistentStoreName;
+
+/**
+ * Returns a string representing a persistent store type. Typically 
+ * NSSQLiteStoreType.
+ */
+- (NSString *)persistentStoreType;
+
+@end
 ```
 
 If you are building a single-threaded application, then you can do all of your operations on the default managed object context. Otherwise, you will need to create a new managed object context for each thread (see example below).
