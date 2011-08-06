@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreData/CoreData.h>
 
 /**
  * Convenience class used to automatically gain the advantage of merge 

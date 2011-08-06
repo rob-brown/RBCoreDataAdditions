@@ -1,18 +1,26 @@
 #RBCoreDataAdditions
 
 ##Summary
-When building Core Data applications, the templates always put the central Core Data code in the app delegate. This has many problems. First, the templat's Core Data additions to the app delegate are not part of the app delegate API. This means that you need to request the add delegate, type cast it to your specific app delegate, and make your Core Data calls. This does not create portable code and is terrible design. Anytime you copy your Core Data code to another project, you have to change all of your typecasts. To remedy this, I have extracted this functionality from the app delegate. Second, you may create an app that doesn't have Core Data at first, but later decide to add it. `RBCoreDataAdditions` can be dropped in your app and immediately gives you everything the template does. At first glance, it may appear that `RBCoreDataAdditions` is nothing more than what is generated from the template. This is mostly true, but `RBCoreDataAdditions` also includes thread safety measures. If you use `RBCoreDataAdditions` to create an `NSManagedObjectContext` for each thread, then merge requests will be automatically handled without any extra effort on your part. Furthermore, automatic migration is turned on by default. All you need to do is keep each copy of your Managed Object Model.
+When building Core Data applications, the templates always put the central Core Data code in the app delegate. This has some problems:
+
+ 1. The template's Core Data additions to the app delegate are not part of the app delegate API. This means that you need to request the add delegate, type cast it to your specific app delegate, and make your Core Data calls. This does not create portable code and is terrible design. Anytime you copy your Core Data code to another project, you have to change all of your typecasts. 
+ 
+ 2. You may create an app that doesn't have Core Data at first, but later decide to add it. `RBCoreDataAdditions` can be dropped in your app and immediately gives you everything the template does. 
+ 
+ 3. The code that is generated is not thread safe. You are left to work out how you want to handle thread safety. Typically it's the exact same technique everytime. 
+ 
+To remedy the above problems, I extracted the Core Data functionality from the app delegate. At first glance, it may appear that `RBCoreDataAdditions` is nothing more than what is generated from the template. This is mostly true, but `RBCoreDataAdditions` also includes thread safety measures. If you use `RBCoreDataAdditions` to create an `NSManagedObjectContext` for each thread, then merge requests will be automatically handled without any extra effort on your part. Furthermore, automatic migration is turned on by default. All you need to do is keep each copy of your Managed Object Model and all your minor changes will be automatically migrated.
 
 ##Dependencies
 `RBCoreDataAdditions` requires Core Data, obviously. It also requires my singleton class [`RBSingleton`][1].
 
+`RBCoreDataAdditions` is written for iOS 3.0+ support.
+
 ##Extras
 
-`RBCoreDataAdditions` does *not* not depend on my `NSManagedObject+RBExtras` class, but you may find it useful. You can find it in my [RBCategories repository][2]. 
+`RBCoreDataAdditions` does *not* depend on my `NSManagedObject+RBExtras` class, but you may find it useful. You can find it in my [RBCategories repository][2]. 
 
 You may also be interested in my [`RBReporter`][3] class. It is great for logging and repoprting Core Data errors.
-
-`RBCoreDataAdditions` is written for iOS 3.0+ support.
 
 ##How To use
 `RBCoreDataAdditions` is meant to be dropped into your app with little effort on your part. If you want to customize the name of your persistent store files and MOM files, then you can change those options in `RBCoreDataManager.m`. Here are the options that you can edit:
@@ -54,8 +62,9 @@ if (![moc save:&error]) {
 
 You can perform any operations on a new MOC without worrying about thread safety. When you save the context, all of the merging will be handled automatically. If you decide you don't want to keep the changes you made, you can throw out the MOC without affecting any other thread's MOCs. 
 
-Errors are not handled in `RBCoreDataManager`, such as migration errors. That's up to you to handle according to your needs. 
+Alternatively, you can create an `NSManagedObjectContext` for each Grand Central Dispatch serial queue. The queue itself will act as the "lock" for the MOC. 
 
+Errors, such as migration errors, are not handled in `RBCoreDataManager`. That's up to you to handle according to your needs. 
 
 ##License
 

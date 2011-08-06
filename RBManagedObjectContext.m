@@ -17,7 +17,6 @@
     
     if ((self = [super init])) {
         
-        NSAssert(coordinator != nil, @"Must give a non-nil persistent store coordinator.");
         [self setPersistentStoreCoordinator:coordinator];
         
         [[NSNotificationCenter defaultCenter] addObserver:self 
