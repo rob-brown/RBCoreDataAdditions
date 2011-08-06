@@ -10,15 +10,6 @@
 
 static RBCoreDataManager * sharedManager = nil;
 
-/// The name of your Managed Object Model file (without extenstion).
-NSString * const kModelName = @"AboutOne";
-
-/// The extension of your Managed Object Model file (typically @"momd" or @"mom").
-NSString * const kModelExtension = @"momd";
-
-/// The name of your persistent store file, if applicable.
-NSString * const kPersistentStoreName = @"AboutOne.sqlite";
-
 
 @interface RBCoreDataManager ()
 
@@ -32,7 +23,7 @@ NSString * const kPersistentStoreName = @"AboutOne.sqlite";
 
 @implementation RBCoreDataManager
 
-@synthesize managedObjectModel, managedObjectContext, persistentStoreCoordinator;
+@synthesize managedObjectModel, managedObjectContext, persistentStoreCoordinator, delegate;
 
 - (void)saveContext {
     
@@ -55,6 +46,37 @@ NSString * const kPersistentStoreName = @"AboutOne.sqlite";
 
 - (NSManagedObjectContext *) createMOC {
     return [[[RBManagedObjectContext alloc] initWithStoreCoordinator:[self persistentStoreCoordinator]] autorelease];
+}
+
+
+#pragma mark - RBCoreDataManagerDelegateMethods
+
+- (id<RBCoreDataManagerDelegate>)delegate {
+    
+    if (!delegate)
+        return self;
+    
+    return delegate;
+}
+
+- (BOOL)shouldUseAutomaticLightweightMigration {
+    return YES;
+}
+
+- (NSString *)modelName {
+    return @"Model";
+}
+
+- (NSString *)modelExtension {
+    return @"PersistentStore.sqlite";
+}
+
+- (NSString *)persistentStoreName {
+    return @"PersistentStore.sqlite";
+}
+
+- (NSString *)persistentStoreType {
+    return NSSQLiteStoreType;
 }
 
 
@@ -90,7 +112,8 @@ NSString * const kPersistentStoreName = @"AboutOne.sqlite";
         return managedObjectModel;
     }
     
-    NSURL * modelURL = [[NSBundle mainBundle] URLForResource:kModelName withExtension:kModelExtension];
+    NSURL * modelURL = [[NSBundle mainBundle] URLForResource:[[self delegate] modelName]
+                                               withExtension:[[self delegate] modelExtension]];
     managedObjectModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];    
     
     return managedObjectModel;
@@ -107,17 +130,22 @@ NSString * const kPersistentStoreName = @"AboutOne.sqlite";
         return persistentStoreCoordinator;
     }
     
-    NSURL * storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:kPersistentStoreName];
+    NSURL * storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:[[self delegate] persistentStoreName]];
     
     NSError * error = nil;
     persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
     
-    // Automatically migrates the model when there are small changes.
-    NSDictionary * options = [NSDictionary dictionaryWithObjectsAndKeys:
-                              [NSNumber numberWithBool:YES], NSMigratePersistentStoresAutomaticallyOption,
-                              [NSNumber numberWithBool:YES], NSInferMappingModelAutomaticallyOption, 
-                              nil];
-    [persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType  // You can change the store type here.
+    NSDictionary * options = nil;
+    
+    if ([self shouldUseAutomaticLightweightMigration]) {
+        // Automatically migrates the model when there are small changes.
+        options = [NSDictionary dictionaryWithObjectsAndKeys:
+                   [NSNumber numberWithBool:YES], NSMigratePersistentStoresAutomaticallyOption,
+                   [NSNumber numberWithBool:YES], NSInferMappingModelAutomaticallyOption,
+                   nil];
+    }
+    
+    [persistentStoreCoordinator addPersistentStoreWithType:[[self delegate] persistentStoreType]
                                                configuration:nil 
                                                          URL:storeURL 
                                                      options:options 

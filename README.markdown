@@ -9,7 +9,19 @@ When building Core Data applications, the templates always put the central Core 
  
  3. The code that is generated is not thread safe. You are left to work out how you want to handle thread safety. Typically it's the exact same technique everytime. 
  
-To remedy the above problems, I extracted the Core Data functionality from the app delegate. At first glance, it may appear that `RBCoreDataAdditions` is nothing more than what is generated from the template. This is mostly true, but `RBCoreDataAdditions` also includes thread safety measures. If you use `RBCoreDataAdditions` to create an `NSManagedObjectContext` for each thread, then merge requests will be automatically handled without any extra effort on your part. Furthermore, automatic migration is turned on by default. All you need to do is keep each copy of your Managed Object Model and all your minor changes will be automatically migrated.
+ 4. In the template, automatic, lightweight migration is off by default, but is frequently used.
+ 
+In response, `RBCoreDataAdditions` remedies each of these problems:
+
+ 1. The Core Data functionality is extracted from the app delegate template into one class that has a well-defined API.
+ 
+ 2. `RBCoreDataAdditions` is designed to be dropped into any existing project with the least amount of resistance. Once you add it to your project, you can immediately start creating your Managed Object Model. 
+ 
+ 3. `RBCoreDataAdditions` adds standard, lockless thread-safety through context merge notifications. 
+ 
+ 4. Automatic, lightweight migration is turned on by default.
+
+On top of all this, by having this code in a centralized location, adding a feature here gives that feature to everyone else. You could never do this with your app delegates.
 
 ##Dependencies
 `RBCoreDataAdditions` requires Core Data, obviously. It also requires my singleton class [`RBSingleton`][1].
