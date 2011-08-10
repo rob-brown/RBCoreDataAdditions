@@ -96,6 +96,10 @@ static RBCoreDataManager * sharedManager = nil;
     return NSSQLiteStoreType;
 }
 
+- (NSString *)defaultStoreName {
+    return nil;
+}
+
 
 #pragma mark - Core Data stack
 
@@ -106,15 +110,13 @@ static RBCoreDataManager * sharedManager = nil;
  */
 - (NSManagedObjectContext *)managedObjectContext {
     
-    if (managedObjectContext != nil) {
+    if (managedObjectContext != nil)
         return managedObjectContext;
-    }
     
     NSPersistentStoreCoordinator * coordinator = [self persistentStoreCoordinator];
     
-    if (coordinator != nil) {
+    if (coordinator != nil)
         managedObjectContext = [[RBManagedObjectContext alloc] initWithStoreCoordinator:coordinator];
-    }
     
     return managedObjectContext;
 }
@@ -125,9 +127,8 @@ static RBCoreDataManager * sharedManager = nil;
  */
 - (NSManagedObjectModel *)managedObjectModel {
     
-    if (managedObjectModel != nil) {
+    if (managedObjectModel != nil)
         return managedObjectModel;
-    }
     
     NSURL * modelURL = [[NSBundle mainBundle] URLForResource:[[self delegate] modelName]
                                                withExtension:[[self delegate] modelExtension]];
@@ -143,13 +144,38 @@ static RBCoreDataManager * sharedManager = nil;
  */
 - (NSPersistentStoreCoordinator *)persistentStoreCoordinator {
     
-    if (persistentStoreCoordinator != nil) {
+    if (persistentStoreCoordinator != nil)
         return persistentStoreCoordinator;
-    }
     
     NSURL * storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:[[self delegate] persistentStoreName]];
     
     NSError * error = nil;
+    NSFileManager * fileManager = [NSFileManager new];
+    
+    // !!!: Be sure to create a new default database if the MOM file is ever changed.
+    
+    // If there is no previous database, then a default one is used (if any).
+    if (![fileManager fileExistsAtPath:[storeURL path]] && [delegate defaultStoreName]) {
+        
+        NSURL * defaultStoreURL = [[NSBundle mainBundle] URLForResource:[delegate defaultStoreName]
+                                                          withExtension:nil];
+        
+        // Copies the default database from the main bundle to the Documents directory.
+        [fileManager copyItemAtURL:defaultStoreURL
+                             toURL:storeURL
+                             error:&error];
+        
+        if (error) {
+            
+            // Handle the error here.
+            
+            // Resets the error.
+            error = nil;
+        }
+    }
+    
+    [fileManager release];
+    
     persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
     
     NSDictionary * options = nil;

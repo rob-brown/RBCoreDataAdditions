@@ -52,4 +52,12 @@
  */
 - (NSString *)persistentStoreType;
 
+/**
+ * Returns the name of a default persistent store in the the main bundle. If 
+ * there is no persistent store file, then this file will be copied from the 
+ * main bundle to the Documents directory. If you don't want to use a default 
+ * store, then return nil.
+ */
+- (NSString *)defaultStoreName;
+
 @end
