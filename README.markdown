@@ -24,7 +24,7 @@ In response, `RBCoreDataAdditions` remedies each of these problems:
 On top of all this, by having this code in a centralized location, adding a feature here gives that feature to everyone else. You could never do this with your app delegates.
 
 ##Dependencies
-`RBCoreDataAdditions` requires Core Data, obviously. It also requires my singleton class [`RBSingleton`][1].
+`RBCoreDataAdditions` requires Core Data, obviously. It also requires my singleton class [`RBSingleton`][1]. `RBFetchedResultsTableVC` uses [`RBReporter`][3] to handle errors. `RBReporter` is not included with `RBCoreDataAdditions` but you can find it [here][3]. If you want to use `RBFetchedResultsTableVC` but don't want `RBReporter`, then you can easily remove the references. 
 
 `RBCoreDataAdditions` is written for iOS 3.0+ support.
 
@@ -83,11 +83,31 @@ if (![moc save:&error]) {
 }
 ```
 
-You can perform any operations on a new MOC without worrying about thread safety. When you save the context, all of the merging will be handled automatically. If you decide you don't want to keep the changes you made, you can throw out the MOC without affecting any other thread's MOCs. 
+You can perform any operations on a new MOC without worrying about thread safety, as long as those operations are performed on the same thread the MOC was created on. When you save the context, all of the merging will be handled automatically. If you decide you don't want to keep the changes you made, you can throw out the MOC without affecting any other thread's MOCs. 
 
-Alternatively, you can create an `NSManagedObjectContext` for each Grand Central Dispatch serial queue. The queue itself will act as the "lock" for the MOC. 
+Alternatively, you can create an `NSManagedObjectContext` for each Grand Central Dispatch serial queue. The queue itself will act as the "lock" for the MOC. This technique does not work with concurrent queues.
 
 Errors, such as migration errors, are not handled in `RBCoreDataManager`. That's up to you to handle according to your needs. 
+
+##Other Additions
+
+###RBFetchedResultsTableVC
+
+`RBCoreDataAdditions` includes a table view controller that has an `NSFetchedResultsController` already integrated into it. All you need to do is subclass `RBFetchedResultsTableVC` and override the needed template methods.
+
+ 1. `-tableView:cellForRowAtIndexPath:` (Required) Creates a customized cell for your `NSManagedObject` subclass.
+ 
+ 2. `-entityName` (Required) The name of the `NSManagedObject` subclass you want to show in the table view.
+ 
+ 3. `-tableView:didSelectRowAtIndexPath:` (Optional) Action to perform when tapping a cell.
+ 
+ 4. `-batchSize` (Optional) The number of results to fetch per request. The default value is already set for iPhone. If you use `RBCoreDataAdditions` in an iPad app, you will want to increase the batch size.
+ 
+ 5. `-sortDescriptors` (Optional) The sort descriptors to use to sort your data. 
+ 
+ 6. `-cacheName` (Optional) The name to use for the cache. The default is guaranteed to be unique. You should only override this if you want to share a cache between classes or you don't want caching. Return `nil` to disable caching. 
+ 
+ 7. `-sectionNameKeyPath` (Optional) The key path to use for sections. The default is `nil`.
 
 ##License
 
