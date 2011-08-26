@@ -44,6 +44,11 @@
 - (NSString *)entityName;
 
 /**
+ * Returns the predicate to use to filter the fetch.
+ */
+- (NSPredicate *)predicate;
+
+/**
  * The number of results to return in one fetch. Set to slightly more than one 
  * screen full of content.
  */
@@ -124,7 +129,11 @@
 
 - (NSString *)entityName {
     
-    NSAssert(NO, @"Required method: %@ not overriden.", NSStringFromSelector(@selector(_cmd)));
+    NSAssert1(NO, @"Required method: %@ not overriden.", NSStringFromSelector(@selector(_cmd)));
+    return nil;
+}
+
+- (NSPredicate *)predicate {
     return nil;
 }
 
@@ -159,7 +168,7 @@
 // Customize the appearance of table view cells.
 - (UITableViewCell *)tableView:(UITableView *)aTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    NSAssert(NO, @"Required method: %@ not overriden.", NSStringFromSelector(@selector(_cmd)));
+    NSAssert1(NO, @"Required method: %@ not overriden.", NSStringFromSelector(@selector(_cmd)));
     return nil;
 }
 
@@ -198,12 +207,13 @@
 
 - (NSFetchedResultsController *)fetchedResultsController {
     
-    // Automatically uses GCD if blocks are available. By using GCD, this method 
-    // becomes threadsafe.
+    // Automatically uses GCD if blocks are available. GCD is faster than @synchronized.
 #if defined(__BLOCKS__)
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
 #else
+        @synchronized(self) {
+        
         if (fetchedResultsController)
             return fetchedResultsController
 #endif
@@ -214,11 +224,9 @@
         NSEntityDescription * entity = [NSEntityDescription entityForName:[self entityName]
                                                    inManagedObjectContext:[self context]];
         [fetchRequest setEntity:entity];
-        
-        // Set the batch size to a suitable number.
         [fetchRequest setFetchBatchSize:[self batchSize]];
-        
         [fetchRequest setSortDescriptors:[self sortDescriptors]];
+        [fetchRequest setPredicate:[self predicate]];
         
         NSFetchedResultsController * fetchController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
                                                                                            managedObjectContext:[self context]
@@ -239,9 +247,10 @@
             [RBReporter presentAlertWithTitle:@"Unkown Error" 
                                       message:@"Unable to update data listing. Reason unknown."];
         }
+    }
         
 #if defined(__BLOCKS__)
-    });
+    );
 #endif
     
     return fetchedResultsController;
