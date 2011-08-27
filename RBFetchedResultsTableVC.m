@@ -22,10 +22,6 @@
 // THE SOFTWARE.
 //
 
-#if defined(__BLOCKS__)
-#import <dispatch/dispatch.h>
-#endif
-
 #import "RBFetchedResultsTableVC.h"
 #import "RBCoreDataManager.h"
 #import "RBReporter.h"
