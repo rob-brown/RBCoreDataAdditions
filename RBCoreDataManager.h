@@ -28,6 +28,8 @@
 #import "RBSingleton.h"
 #import "RBCoreDataManagerDelegate.h"
 
+typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
+
 @interface RBCoreDataManager : RBSingleton <RBCoreDataManagerDelegate> {
     
     // These ivars are included since they have custom accessors.

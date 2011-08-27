@@ -128,7 +128,6 @@
 #pragma mark - Template methods
 
 - (NSString *)entityName {
-    
     NSAssert1(NO, @"Required method: %@ not overriden.", NSStringFromSelector(@selector(_cmd)));
     return nil;
 }
@@ -142,6 +141,7 @@
 }
 
 - (NSArray *)sortDescriptors {
+    NSAssert1(NO, @"Required method: %@ not overriden.", NSStringFromSelector(@selector(_cmd)));
     return nil;
 }
 
@@ -167,7 +167,6 @@
 
 // Customize the appearance of table view cells.
 - (UITableViewCell *)tableView:(UITableView *)aTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    
     NSAssert1(NO, @"Required method: %@ not overriden.", NSStringFromSelector(@selector(_cmd)));
     return nil;
 }
@@ -207,17 +206,11 @@
 
 - (NSFetchedResultsController *)fetchedResultsController {
     
-    // Automatically uses GCD if blocks are available. GCD is faster than @synchronized.
-#if defined(__BLOCKS__)
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-#else
-        @synchronized(self) {
+    @synchronized(self) {
         
         if (fetchedResultsController)
-            return fetchedResultsController
-#endif
-            
+            return fetchedResultsController;
+        
         // Create the fetch request for the entity.
         NSFetchRequest * fetchRequest = [NSFetchRequest new];
         // Edit the entity name as appropriate.
@@ -248,10 +241,6 @@
                                       message:@"Unable to update data listing. Reason unknown."];
         }
     }
-        
-#if defined(__BLOCKS__)
-    );
-#endif
     
     return fetchedResultsController;
 }    

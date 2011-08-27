@@ -99,13 +99,13 @@ Errors, such as migration errors, are not handled in `RBCoreDataManager`. That's
  
  2. `-entityName` (Required) The name of the `NSManagedObject` subclass you want to show in the table view.
  
- 3. `-tableView:didSelectRowAtIndexPath:` (Optional) Action to perform when tapping a cell.
+ 3. `-sortDescriptors` (Required) The sort descriptors to use to sort your data.
 
  4. `-predicate` (Optional) The predicate to use to filter the fetched results.
  
- 5. `-batchSize` (Optional) The number of results to fetch per request. The default value is already set for iPhone. If you use `RBCoreDataAdditions` in an iPad app, you will want to increase the batch size.
+ 5. `-tableView:didSelectRowAtIndexPath:` (Optional) Action to perform when tapping a cell.
  
- 6. `-sortDescriptors` (Optional) The sort descriptors to use to sort your data. 
+ 6.  `-batchSize` (Optional) The number of results to fetch per request. The default value is already set for iPhone. If you use `RBCoreDataAdditions` in an iPad app, you will want to increase the batch size.
  
  7. `-cacheName` (Optional) The name to use for the cache. The default is guaranteed to be unique. You should only override this if you want to share a cache between classes or you don't want caching. Return `nil` to disable caching. 
  
