@@ -1,15 +1,15 @@
 #RBCoreDataAdditions
 
 ##Summary
-When building Core Data applications, the templates always put the central Core Data code in the app delegate. This has some problems:
+When building Core Data applications, the Xcode template always put the central Core Data code in the app delegate. This has some problems:
 
  1. The template's Core Data additions to the app delegate are not part of the app delegate API. This means that you need to request the add delegate, type cast it to your specific app delegate, and make your Core Data calls. This does not create portable code and is terrible design. Anytime you copy your Core Data code to another project, you have to change all of your typecasts. 
  
- 2. You may create an app that doesn't have Core Data at first, but later decide to add it. `RBCoreDataAdditions` can be dropped in your app and immediately gives you everything the template does. 
+ 2. You may create an app that doesn't have Core Data at first, but later decide to add it. The Xcode template can only be applied when first creating a project.
  
  3. The code that is generated is not thread safe. You are left to work out how you want to handle thread safety. Typically it's the exact same technique everytime. 
  
- 4. In the template, automatic, lightweight migration is off by default, but is frequently used.
+ 4. In the template, automatic, lightweight migration is off by default, but lightweight migration is frequently used.
  
 In response, `RBCoreDataAdditions` remedies each of these problems:
 
@@ -21,7 +21,7 @@ In response, `RBCoreDataAdditions` remedies each of these problems:
  
  4. Automatic, lightweight migration is turned on by default but you may opt out by changing one line.
 
-On top of all this, by having this code in a centralized location, adding a feature here gives that feature to everyone else. You could never do this with your app delegates.
+On top of all this, by having this code in a centralized location, adding a feature to `RBCoreDataAdditions` distributes that functionality to all code using it. You could never do this with your app delegates.
 
 ##Dependencies
 `RBCoreDataAdditions` requires Core Data, obviously. It also requires my singleton class [`RBSingleton`][1]. `RBFetchedResultsTableVC` uses [`RBReporter`][3] to handle errors. `RBReporter` is not included with `RBCoreDataAdditions` but you can find it [here][3]. If you want to use `RBFetchedResultsTableVC` but don't want `RBReporter`, then you can easily remove the references. 
@@ -101,9 +101,9 @@ Errors, such as migration errors, are not handled in `RBCoreDataManager`. That's
  
  3. `-sortDescriptors` (Required) The sort descriptors to use to sort your data.
 
- 4. `-predicate` (Optional) The predicate to use to filter the fetched results.
+ 4. `-tableView:didSelectRowAtIndexPath:` (Optional but highly recommended) Action to perform when tapping a cell.
  
- 5. `-tableView:didSelectRowAtIndexPath:` (Optional) Action to perform when tapping a cell.
+ 5. `-predicate` (Optional but highly recommended) The predicate to use to filter the fetched results.
  
  6.  `-batchSize` (Optional) The number of results to fetch per request. The default value is already set for iPhone. If you use `RBCoreDataAdditions` in an iPad app, you will want to increase the batch size.
  
