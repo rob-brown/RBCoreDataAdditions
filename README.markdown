@@ -21,7 +21,7 @@ In response, `RBCoreDataAdditions` remedies each of these problems:
  
  4. Automatic, lightweight migration is turned on by default but you may opt out by changing one line.
 
-On top of all this, by having this code in a centralized location, adding a feature to `RBCoreDataAdditions` distributes that functionality to all code using it. You could never do this with your app delegates.
+On top of all this, by having this code in a centralized location, adding a feature to `RBCoreDataAdditions` distributes that functionality to all code using `RBCoreDataAdditions`. You could never do this with your app delegates.
 
 ##Dependencies
 `RBCoreDataAdditions` requires Core Data, obviously. It also requires my singleton class [`RBSingleton`][1]. `RBFetchedResultsTableVC` uses [`RBReporter`][3] to handle errors. `RBReporter` is not included with `RBCoreDataAdditions` but you can find it [here][3]. If you want to use `RBFetchedResultsTableVC` but don't want `RBReporter`, then you can easily remove the references. 
@@ -65,6 +65,14 @@ You may also be interested in my [`RBReporter`][3] class. It is great for loggin
  * NSSQLiteStoreType.
  */
 - (NSString *)persistentStoreType;
+
+/**
+ * Returns the name of a default persistent store in the the main bundle. If 
+ * there is no persistent store file, then this file will be copied from the 
+ * main bundle to the Documents directory. If you don't want to use a default 
+ * store, then return nil.
+ */
+- (NSString *)defaultStoreName;
 
 @end
 ```
