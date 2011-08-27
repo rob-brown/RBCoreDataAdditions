@@ -35,12 +35,21 @@ static RBCoreDataManager * sharedManager = nil;
  */
 - (NSURL *)applicationDocumentsDirectory;
 
+/**
+ * Returns the app's name, if one can be found. A default name is returned if a 
+ * name can't be found. 
+ */
+- (NSString *)appName;
+
 @end
 
 
 @implementation RBCoreDataManager
 
-@synthesize managedObjectModel, managedObjectContext, persistentStoreCoordinator, delegate;
+@synthesize managedObjectModel;
+@synthesize managedObjectContext;
+@synthesize persistentStoreCoordinator;
+@synthesize delegate;
 
 - (void)saveContext {
     
@@ -65,6 +74,16 @@ static RBCoreDataManager * sharedManager = nil;
     return [[[RBManagedObjectContext alloc] initWithStoreCoordinator:[self persistentStoreCoordinator]] autorelease];
 }
 
+- (NSString *)appName {
+    
+    NSString * appName = [[[NSBundle mainBundle] bundleIdentifier] lastPathComponent];
+    
+    if ([appName length] == 0 || [appName isEqualToString:@"*"])
+        appName = @"Default";
+    
+    return appName;
+}
+
 
 #pragma mark - RBCoreDataManagerDelegateMethods
 
@@ -81,7 +100,7 @@ static RBCoreDataManager * sharedManager = nil;
 }
 
 - (NSString *)modelName {
-    return @"Model";
+    return [self appName];
 }
 
 - (NSString *)modelExtension {
@@ -89,7 +108,7 @@ static RBCoreDataManager * sharedManager = nil;
 }
 
 - (NSString *)persistentStoreName {
-    return @"PersistentStore.sqlite";
+    return [NSString stringWithFormat:@"%@.sqlite", [self appName]];
 }
 
 - (NSString *)persistentStoreType {

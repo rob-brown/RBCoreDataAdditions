@@ -28,11 +28,13 @@
 #import "RBSingleton.h"
 #import "RBCoreDataManagerDelegate.h"
 
+/// A convenient block type to use when creating MOC-accessing blocks.
 typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
 
 @interface RBCoreDataManager : RBSingleton <RBCoreDataManagerDelegate> {
     
     // These ivars are included since they have custom accessors.
+    @private
     NSManagedObjectContext * managedObjectContext;
     NSManagedObjectModel * managedObjectModel;
     NSPersistentStoreCoordinator * persistentStoreCoordinator;
@@ -44,7 +46,16 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
  */
 @property (nonatomic, retain, readonly) NSManagedObjectContext * managedObjectContext;
 
+/**
+ * The data model.
+ */
 @property (nonatomic, retain, readonly) NSManagedObjectModel * managedObjectModel;
+
+/**
+ * The persistent store coordinator. You may have more than one MOC and more 
+ * than one persistent store, but you should rarely have more than one 
+ * persistent store coordinator.
+ */
 @property (nonatomic, retain, readonly) NSPersistentStoreCoordinator * persistentStoreCoordinator;
 
 /**
