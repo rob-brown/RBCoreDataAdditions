@@ -26,6 +26,8 @@ On top of all this, by having this code in a centralized location, adding a feat
 ##Dependencies
 `RBCoreDataAdditions` requires Core Data, obviously. It also requires my singleton class [`RBSingleton`][1]. `RBFetchedResultsTableVC` uses [`RBReporter`][3] to handle errors. `RBReporter` is not included with `RBCoreDataAdditions` but you can find it [here][3]. If you want to use `RBFetchedResultsTableVC` but don't want `RBReporter`, then you can easily remove the references. 
 
+If iOS 4.0+ is used, then `RBCoreDataManager` requires my [`GCD+RBExtras`][2] and Grand Central Dispatch (AKA libdispatch). This is done to use a lockless exclusion pattern that I have personally developed. What happens is the default MOC is encapsulated and is inaccessible to outside classes. It can only be accessed by calling `-accessDefaultMOCAsync:` or `-accessDefaultMOCSyncSafe:`. This is to ensure that the default MOC is only accessed on the main thread. This feature and dependency can be removed by defining `RBCDM_USE_LOCKLESS_EXCLUSION` as 0.
+
 `RBCoreDataAdditions` is written for iOS 3.0+ support.
 
 ##Extras

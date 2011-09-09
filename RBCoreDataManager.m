@@ -25,10 +25,19 @@
 #import "RBCoreDataManager.h"
 #import "RBManagedObjectContext.h"
 
+#if defined(__BLOCKS__) && RBCDM_USE_LOCKLESS_EXCLUSION
+#import "GCD+RBExtras.h"
+#endif
+
 static RBCoreDataManager * sharedManager = nil;
 
 
 @interface RBCoreDataManager ()
+
+/**
+ * The default MOC. Should only be accessed on the main thread.
+ */
+@property (nonatomic, retain, readwrite) NSManagedObjectContext * managedObjectContext;
 
 /**
  * Returns a URL that points to the documents directory.
@@ -83,6 +92,27 @@ static RBCoreDataManager * sharedManager = nil;
     
     return appName;
 }
+
+
+#pragma mark - Lockless Exclusion Accessors
+
+#if defined(__BLOCKS__) && RBCDM_USE_LOCKLESS_EXCLUSION
+
+- (void)accessDefaultMOCAsync:(RBMOCBlock)block {
+    
+    dispatch_async_main(^{
+        block([self managedObjectContext]);
+    });
+}
+
+- (void)accessDefaultMOCSyncSafe:(RBMOCBlock)block {
+    
+    dispatch_sync_safe_main(^{
+        block([self managedObjectContext]);
+    });
+}
+
+#endif
 
 
 #pragma mark - RBCoreDataManagerDelegateMethods

@@ -28,6 +28,8 @@
 #import "RBSingleton.h"
 #import "RBCoreDataManagerDelegate.h"
 
+#define RBCDM_USE_LOCKLESS_EXCLUSION 1
+
 /// A convenient block type to use when creating MOC-accessing blocks.
 typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
 
@@ -41,10 +43,14 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
     id<RBCoreDataManagerDelegate> delegate;
 }
 
+#if !defined(__BLOCKS__) || !RBCDM_USE_LOCKLESS_EXCLUSION
+
 /**
  * The default MOC. Should only be accessed on the main thread.
  */
 @property (nonatomic, retain, readonly) NSManagedObjectContext * managedObjectContext;
+
+#endif
 
 /**
  * The data model.
@@ -80,5 +86,16 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
  * Grand Central Dispatch queue.
  */
 - (NSManagedObjectContext *) createMOC;
+
+#if defined(__BLOCKS__) && RBCDM_USE_LOCKLESS_EXCLUSION
+
+/**
+ * If blocks and GCD are available, then this is the preferred way to access the default MOC (rather than [self managedObjectContext]).
+ */
+- (void)accessDefaultMOCAsync:(RBMOCBlock)block;
+
+- (void)accessDefaultMOCSyncSafe:(RBMOCBlock)block;
+
+#endif
 
 @end
