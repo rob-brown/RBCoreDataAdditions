@@ -88,12 +88,6 @@
 
 #pragma mark - Memory Management
 
-- (void)dealloc {
-    [self setTableView:nil];
-    [self setFetchedResultsController:nil];
-    [self setContext:nil];
-    [super dealloc];
-}
 
 - (void)didReceiveMemoryWarning {
     // Releases the view if it doesn't have a superview.
@@ -224,8 +218,6 @@
         fetchController.delegate = self;
         self.fetchedResultsController = fetchController;
         
-        [fetchController release];
-        [fetchRequest release];
         
         NSError * error = nil;
         if (![fetchedResultsController performFetch:&error]) {
