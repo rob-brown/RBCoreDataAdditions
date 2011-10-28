@@ -29,9 +29,9 @@
 
 @interface RBFetchedResultsTableVC ()
 
-@property (nonatomic, retain, readwrite) NSFetchedResultsController * fetchedResultsController;
+@property (nonatomic, strong, readwrite) NSFetchedResultsController * fetchedResultsController;
 
-@property (nonatomic, retain, readwrite) NSManagedObjectContext * context;
+@property (nonatomic, strong, readwrite) NSManagedObjectContext * context;
 
 /**
  * Required method, must be overriden by subclasses. Return the name of the entity

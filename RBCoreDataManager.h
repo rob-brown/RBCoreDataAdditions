@@ -48,7 +48,7 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
 /**
  * The default MOC. Should only be accessed on the main thread.
  */
-@property (nonatomic, retain, readonly) NSManagedObjectContext * managedObjectContext;
+@property (nonatomic, strong, readonly) NSManagedObjectContext * managedObjectContext;
 
 #endif
 
