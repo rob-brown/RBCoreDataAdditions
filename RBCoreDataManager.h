@@ -41,8 +41,8 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
     NSManagedObjectContext * managedObjectContext;
     NSManagedObjectModel * managedObjectModel;
     NSPersistentStoreCoordinator * persistentStoreCoordinator;
-    id<RBCoreDataManagerDelegate> delegate;
     dispatch_queue_t defaultMOCQueue;
+    id<RBCoreDataManagerDelegate> __unsafe_unretained delegate;
 }
 
 #if !defined(__BLOCKS__) || !RBCDM_USE_LOCKLESS_EXCLUSION
@@ -50,28 +50,28 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
 /**
  * The default MOC. Should only be accessed on the main thread.
  */
-@property (nonatomic, retain, readonly) NSManagedObjectContext * managedObjectContext;
+@property (nonatomic, strong, readonly) NSManagedObjectContext * managedObjectContext;
 
 #endif
 
 /**
  * The data model.
  */
-@property (nonatomic, retain, readonly) NSManagedObjectModel * managedObjectModel;
+@property (nonatomic, strong, readonly) NSManagedObjectModel * managedObjectModel;
 
 /**
  * The persistent store coordinator. You may have more than one MOC and more 
  * than one persistent store, but you should rarely have more than one 
  * persistent store coordinator.
  */
-@property (nonatomic, retain, readonly) NSPersistentStoreCoordinator * persistentStoreCoordinator;
+@property (nonatomic, strong, readonly) NSPersistentStoreCoordinator * persistentStoreCoordinator;
 
 /**
  * The delegate for the manager. This should be set when the application 
  * launches and should not ever be changed. If the delegate is not set, it 
  * defaults to self.
  */
-@property (nonatomic, assign) id<RBCoreDataManagerDelegate> delegate;
+@property (nonatomic, unsafe_unretained) id<RBCoreDataManagerDelegate> delegate;
 
 /**
  * Returns the shared instance.

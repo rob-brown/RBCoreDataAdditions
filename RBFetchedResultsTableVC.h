@@ -31,10 +31,10 @@
     NSFetchedResultsController * fetchedResultsController;
 }
 
-@property (nonatomic, retain) IBOutlet UITableView * tableView;
+@property (nonatomic, strong) IBOutlet UITableView * tableView;
 
-@property (nonatomic, retain, readonly) NSManagedObjectContext * context;
+@property (nonatomic, strong, readonly) NSManagedObjectContext * context;
 
-@property (nonatomic, retain, readonly) NSFetchedResultsController * fetchedResultsController;
+@property (nonatomic, strong, readonly) NSFetchedResultsController * fetchedResultsController;
 
 @end

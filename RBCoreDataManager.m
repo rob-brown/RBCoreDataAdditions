@@ -37,7 +37,7 @@ static RBCoreDataManager * sharedManager = nil;
 /**
  * The default MOC. Should only be accessed on the main thread.
  */
-@property (nonatomic, retain, readwrite) NSManagedObjectContext * managedObjectContext;
+@property (nonatomic, strong, readwrite) NSManagedObjectContext * managedObjectContext;
 
 /**
  * A serial quueue used to serialize all requests to the default MOC.
@@ -86,7 +86,7 @@ static RBCoreDataManager * sharedManager = nil;
 }
 
 - (NSManagedObjectContext *) createMOC {
-    return [[[RBManagedObjectContext alloc] initWithStoreCoordinator:[self persistentStoreCoordinator]] autorelease];
+    return [[RBManagedObjectContext alloc] initWithStoreCoordinator:[self persistentStoreCoordinator]];
 }
 
 - (NSString *)appName {
@@ -248,7 +248,6 @@ static RBCoreDataManager * sharedManager = nil;
         }
     }
     
-    [fileManager release];
     
     persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
     
