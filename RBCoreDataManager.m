@@ -40,6 +40,11 @@ static RBCoreDataManager * sharedManager = nil;
 @property (nonatomic, retain, readwrite) NSManagedObjectContext * managedObjectContext;
 
 /**
+ * A serial quueue used to serialize all requests to the default MOC.
+ */
+@property (nonatomic, assign) dispatch_queue_t defaultMOCQueue;
+
+/**
  * Returns a URL that points to the documents directory.
  */
 - (NSURL *)applicationDocumentsDirectory;
@@ -59,6 +64,7 @@ static RBCoreDataManager * sharedManager = nil;
 @synthesize managedObjectContext;
 @synthesize persistentStoreCoordinator;
 @synthesize delegate;
+@synthesize defaultMOCQueue;
 
 - (void)saveContext {
     
@@ -93,6 +99,18 @@ static RBCoreDataManager * sharedManager = nil;
     return appName;
 }
 
+- (dispatch_queue_t)defaultMOCQueue {
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        if (!defaultMOCQueue) {
+            defaultMOCQueue = dispatch_queue_create("com.RobertBrown.DefaultMOCQueue", NULL);
+        }
+    });
+    
+    return defaultMOCQueue;
+}
+
 
 #pragma mark - Lockless Exclusion Accessors
 
@@ -100,16 +118,23 @@ static RBCoreDataManager * sharedManager = nil;
 
 - (void)accessDefaultMOCAsync:(RBMOCBlock)block {
     
-    dispatch_async_main(^{
+    dispatch_async([self defaultMOCQueue], ^{
         block([self managedObjectContext]);
     });
 }
 
 - (void)accessDefaultMOCSyncSafe:(RBMOCBlock)block {
     
-    dispatch_sync_safe_main(^{
+    dispatch_queue_t queue = [self defaultMOCQueue];
+    
+    if (dispatch_get_current_queue() == queue) {
         block([self managedObjectContext]);
-    });
+    }
+    else {
+        dispatch_sync(queue, ^{
+            block([self managedObjectContext]);
+        });
+    }
 }
 
 #endif

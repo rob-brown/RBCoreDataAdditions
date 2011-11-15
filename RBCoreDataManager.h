@@ -36,11 +36,13 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
 @interface RBCoreDataManager : RBSingleton <RBCoreDataManagerDelegate> {
     
     // These ivars are included since they have custom accessors.
+    // They should be moved into the class extension later.
     @private
     NSManagedObjectContext * managedObjectContext;
     NSManagedObjectModel * managedObjectModel;
     NSPersistentStoreCoordinator * persistentStoreCoordinator;
     id<RBCoreDataManagerDelegate> delegate;
+    dispatch_queue_t defaultMOCQueue;
 }
 
 #if !defined(__BLOCKS__) || !RBCDM_USE_LOCKLESS_EXCLUSION
