@@ -33,26 +33,7 @@
 /// A convenient block type to use when creating MOC-accessing blocks.
 typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
 
-@interface RBCoreDataManager : RBSingleton <RBCoreDataManagerDelegate> {
-    
-    // These ivars are included since they have custom accessors.
-    // They should be moved into the class extension later.
-    @private
-    NSManagedObjectContext * managedObjectContext;
-    NSManagedObjectModel * managedObjectModel;
-    NSPersistentStoreCoordinator * persistentStoreCoordinator;
-    dispatch_queue_t defaultMOCQueue;
-    id<RBCoreDataManagerDelegate> __unsafe_unretained delegate;
-}
-
-#if !defined(__BLOCKS__) || !RBCDM_USE_LOCKLESS_EXCLUSION
-
-/**
- * The default MOC. Should only be accessed on the main thread.
- */
-@property (nonatomic, strong, readonly) NSManagedObjectContext * managedObjectContext;
-
-#endif
+@interface RBCoreDataManager : RBSingleton <RBCoreDataManagerDelegate>
 
 /**
  * The data model.
@@ -73,10 +54,33 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
  */
 @property (nonatomic, unsafe_unretained) id<RBCoreDataManagerDelegate> delegate;
 
+#if !defined(__BLOCKS__) || !RBCDM_USE_LOCKLESS_EXCLUSION
+
+/**
+ * The default MOC. Should only be accessed on the main thread.
+ */
+@property (nonatomic, strong, readonly) NSManagedObjectContext * managedObjectContext;
+
+#else
+
+/**
+ * If blocks and GCD are available, then this is the preferred way to access the 
+ * default MOC (rather than [self managedObjectContext]).
+ */
+- (void)accessDefaultMOCAsync:(RBMOCBlock)block;
+
+- (void)accessDefaultMOCSyncSafe:(RBMOCBlock)block DEPRECATED_ATTRIBUTE;
+
+- (void)accessDefaultMOCSyncChecked:(RBMOCBlock)block;
+
+- (void)accessDefaultMOCAsync:(RBMOCBlock)block continueBlock:(dispatch_block_t)continueBlock;
+
+#endif
+
 /**
  * Returns the shared instance.
  */
-+ (RBCoreDataManager *) sharedManager;
++ (RBCoreDataManager *)sharedManager;
 
 /**
  * Saves the default MOC.
@@ -87,17 +91,6 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
  * Creates an autoreleased MOC. You should create a MOC for everyt thread or 
  * Grand Central Dispatch queue.
  */
-- (NSManagedObjectContext *) createMOC;
-
-#if defined(__BLOCKS__) && RBCDM_USE_LOCKLESS_EXCLUSION
-
-/**
- * If blocks and GCD are available, then this is the preferred way to access the default MOC (rather than [self managedObjectContext]).
- */
-- (void)accessDefaultMOCAsync:(RBMOCBlock)block;
-
-- (void)accessDefaultMOCSyncSafe:(RBMOCBlock)block;
-
-#endif
+- (NSManagedObjectContext *)createMOC;
 
 @end
