@@ -30,7 +30,7 @@
 #import "GCD+RBExtras.h"
 #endif
 
-static RBCoreDataManager * sharedManager = nil;
+static RBCoreDataManager * _defaultManager = nil;
 
 
 @interface RBCoreDataManager () {
@@ -102,9 +102,11 @@ static RBCoreDataManager * sharedManager = nil;
 
 - (NSString *)appName {
     
-    NSString * appName = [[[NSBundle mainBundle] bundleIdentifier] lastPathComponent];
+    NSString * appName = [[NSBundle mainBundle] bundleIdentifier];
+    NSArray * comps = [appName componentsSeparatedByString:@"."];
+    appName = [comps lastObject];
     
-    if ([appName length] == 0 || [appName isEqualToString:@"*"])
+    if (!appName || [appName length] == 0 || [appName isEqualToString:@"*"])
         appName = @"Default";
     
     return appName;
@@ -125,13 +127,6 @@ static RBCoreDataManager * sharedManager = nil;
     return _defaultMOCQueue;
 }
 
-- (void)accessDefaultMOCSyncSafe:(RBMOCBlock)block {
-    
-    dispatch_sync_safe([self defaultMOCQueue], ^{
-        block([self managedObjectContext]);
-    });
-}
-
 - (void)accessDefaultMOCSyncChecked:(RBMOCBlock)block {
     
     dispatch_sync_checked([self defaultMOCQueue], ^{
@@ -144,14 +139,6 @@ static RBCoreDataManager * sharedManager = nil;
     dispatch_async([self defaultMOCQueue], ^{
         block([self managedObjectContext]);
     });
-}
-
-- (void)accessDefaultMOCAsync:(RBMOCBlock)block continueBlock:(dispatch_block_t)continueBlock {
-    dispatch_async_continue([self defaultMOCQueue], 
-                            ^{
-                                block([self managedObjectContext]);
-                            },
-                            continueBlock);
 }
 
 #endif
@@ -205,7 +192,7 @@ static RBCoreDataManager * sharedManager = nil;
     dispatch_once(&onceToken, ^{
         NSPersistentStoreCoordinator * coordinator = [self persistentStoreCoordinator];
         
-        if (coordinator != nil)
+        if (coordinator)
             _managedObjectContext = [[RBManagedObjectContext alloc] initWithStoreCoordinator:coordinator];
         else
             NSLog(@"Error creating coordinator.");
@@ -224,7 +211,25 @@ static RBCoreDataManager * sharedManager = nil;
     dispatch_once(&onceToken, ^{
         NSURL * modelURL = [[NSBundle mainBundle] URLForResource:[[self delegate] modelName]
                                                    withExtension:[[self delegate] modelExtension]];
+        if (!modelURL)
+            NSAssert2(NO, 
+                      @"No MOM file found named: %@.%@ in the main bundle. "
+                      "Did you specify the right filename in -modelName and -modelExtension? "
+                      "If you are using a custom delegate, be aware that XIBs and UIStoryboards "
+                      "are inflated before -application:didFinishLaunchingWithOptions: is called. ", 
+                      [[self delegate] modelName], 
+                      [[self delegate] modelExtension]);
+        
         _managedObjectModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        
+        if (!_managedObjectModel) {
+            NSAssert1(NO, 
+                      @"MOM file could not be read from file at path: %@. "
+                      "Did change your model without migrating? "
+                      "Try deleting your app and cleaning your build. "
+                      "You may need to restart Xcode if it is in an inconsistent state. ", 
+                      modelURL);
+        }
     });
     
     return _managedObjectModel;
@@ -308,7 +313,7 @@ static RBCoreDataManager * sharedManager = nil;
              Lightweight migration will only work for a limited set of schema changes; consult "Core Data Model Versioning and Data Migration Programming Guide" for details.
              
              */
-            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+            NSLog(@"Unresolved error %@, %@. Did you forget to migrate your model?", error, [error userInfo]);
             abort();
         } 
     });
@@ -331,13 +336,17 @@ static RBCoreDataManager * sharedManager = nil;
 #pragma mark - Singleton methods
 
 + (RBCoreDataManager *)sharedManager {
+    return [self defaultManager];
+}
+
++ (RBCoreDataManager *)defaultManager {
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedManager = [super sharedInstance];
+        _defaultManager = [RBCoreDataManager new];
     });
     
-    return sharedManager;
+    return _defaultManager;
 }
 
 @end

@@ -25,7 +25,6 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-#import "RBSingleton.h"
 #import "RBCoreDataManagerDelegate.h"
 
 #define RBCDM_USE_LOCKLESS_EXCLUSION 1
@@ -33,7 +32,7 @@
 /// A convenient block type to use when creating MOC-accessing blocks.
 typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
 
-@interface RBCoreDataManager : RBSingleton <RBCoreDataManagerDelegate>
+@interface RBCoreDataManager : NSObject <RBCoreDataManagerDelegate>
 
 /**
  * The data model.
@@ -69,18 +68,19 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
  */
 - (void)accessDefaultMOCAsync:(RBMOCBlock)block;
 
-- (void)accessDefaultMOCSyncSafe:(RBMOCBlock)block DEPRECATED_ATTRIBUTE;
-
 - (void)accessDefaultMOCSyncChecked:(RBMOCBlock)block;
-
-- (void)accessDefaultMOCAsync:(RBMOCBlock)block continueBlock:(dispatch_block_t)continueBlock;
 
 #endif
 
 /**
  * Returns the shared instance.
  */
-+ (RBCoreDataManager *)sharedManager;
++ (RBCoreDataManager *)sharedManager DEPRECATED_ATTRIBUTE;
+
+/**
+ * Returns the default instance.
+ */
++ (RBCoreDataManager *)defaultManager;
 
 /**
  * Saves the default MOC.

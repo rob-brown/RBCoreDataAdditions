@@ -1,7 +1,7 @@
 #RBCoreDataAdditions
 
 ##Summary
-When building Core Data applications, the Xcode template always put the central Core Data code in the app delegate. This has some problems:
+When building Core Data applications, the Xcode template always puts the central Core Data code in the app delegate. This has some problems:
 
  1. The template's Core Data additions to the app delegate are not part of the app delegate API. This means that you need to request the add delegate, type cast it to your specific app delegate, and make your Core Data calls. This does not create portable code and is terrible design. Anytime you copy your Core Data code to another project, you have to change all of your typecasts. 
  
@@ -26,7 +26,7 @@ On top of all this, by having this code in a centralized location, adding a feat
 ##Dependencies
 `RBCoreDataAdditions` is written for iOS 3.0+ support.
 
-`RBCoreDataAdditions` requires Core Data, obviously. It also requires my singleton class [`RBSingleton`][1]. `RBFetchedResultsTableVC` uses [`RBReporter`][3] to handle errors. `RBReporter` is not included with `RBCoreDataAdditions` but you can find it [here][3]. If you want to use `RBFetchedResultsTableVC` but don't want `RBReporter`, then you can easily remove the references. 
+`RBCoreDataAdditions` requires Core Data, obviously. 
 
 If iOS 4.0+ is used, then `RBCoreDataManager` requires my [`GCD+RBExtras`][2] and Grand Central Dispatch (AKA libdispatch). This is done to use a lockless exclusion pattern that I have personally developed. What happens is the default MOC is encapsulated and is inaccessible to outside classes. It can only be accessed by calling `-accessDefaultMOCAsync:` or `-accessDefaultMOCSyncSafe:`. This is to ensure that the default MOC is only accessed on the main thread. This feature and dependency can be removed by defining `RBCDM_USE_LOCKLESS_EXCLUSION` as 0.
 
@@ -34,10 +34,18 @@ If iOS 4.0+ is used, then `RBCoreDataManager` requires my [`GCD+RBExtras`][2] an
 
 `RBCoreDataAdditions` does *not* depend on my `NSManagedObject+RBExtras` class, but you may find it useful. You can find it in my [RBCategories repository][2]. 
 
-You may also be interested in my [`RBReporter`][3] class. It is great for logging and repoprting Core Data errors.
+You may also be interested in my [`RBReporter`][3] class. It is great for logging and reporting Core Data errors.
 
 ##How To use
-`RBCoreDataAdditions` is meant to be dropped into your app with little effort on your part. If you want to customize the name of your persistent store file, name of MOM file, etc you can either provide an `RBCoreDataManagerDelegate` or modify the delegate calls within `RBCoreDataManager.m`. This flexibility is nice so you don't accidentally commit your constants to the main repo. If you create a singleton, I recommend creating a singleton or using the app delegate. NOTE: The delegate should be set at launch and never changed. Here are the current options defined in `RBCoreDataManagerDelegate`:
+`RBCoreDataAdditions` is meant to be dropped into your app with little effort on your part. If you want to customize the name of your persistent store file, name of MOM file, etc you can do one of the following: 
+
+ 1. Subclass `RBCoreDataManager`. 
+
+ 2. Create an `RBCoreDataManagerDelegate`. If you take this route, you need to beware a couple things. First, you should set the delegate as soon as possible after launch and never change it. Second, XIBs and UIStoryboards are inflated before `-application:didFinishLaunchingWithOptions:` is called. If you make any calls to `RBCoreDataManager` in your view loading code, then the delegate may not be set yet and will revert to the defaults in `RBCoreDataManager.m`.
+ 
+ 3. Modify the delegate calls within `RBCoreDataManager.m`. This is the safest option. However, if you submit a pull request for `RBCoreDataAdditions`, you should not modify the delegate methods in `RBCoreDataManager.m`.
+ 
+Here are the options defined in `RBCoreDataManagerDelegate`:
 
 ```objective-c
 @protocol RBCoreDataManagerDelegate <NSObject>
@@ -82,7 +90,7 @@ You may also be interested in my [`RBReporter`][3] class. It is great for loggin
 If you are building a single-threaded application, then you can do all of your operations on the default managed object context. Otherwise, you will need to create a new managed object context for each thread (see example below).
 
 ```objective-c
-NSManagedObjectContext * moc = [[RBCoreDataManager sharedManager] createMoc];
+NSManagedObjectContext * moc = [[RBCoreDataManager defaultManager] createMoc];
 
 // Perform some Core Data operations.
 
@@ -145,6 +153,5 @@ Errors, such as migration errors, are not handled in `RBCoreDataManager`. That's
 >OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 >THE SOFTWARE.
 
-  [1]: https://gist.github.com/1116294
   [2]: https://github.com/rob-brown/RBCategories
   [3]: https://github.com/rob-brown/RBBugReporter

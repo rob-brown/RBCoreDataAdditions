@@ -24,7 +24,6 @@
 
 #import "RBFetchedResultsTableVC.h"
 #import "RBCoreDataManager.h"
-#import "RBReporter.h"
 
 
 @interface RBFetchedResultsTableVC ()
@@ -79,7 +78,7 @@
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     
     if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
-        [self setContext:[[RBCoreDataManager sharedManager] createMOC]];
+        [self setContext:[[RBCoreDataManager defaultManager] createMOC]];
     }
     
     return self;
@@ -218,15 +217,11 @@
         fetchController.delegate = self;
         self.fetchedResultsController = fetchController;
         
-        
         NSError * error = nil;
         if (![fetchedResultsController performFetch:&error]) {
-            
-            // Uses RBReporter, but you may remove it if you want to handle your errors differently.
-            
-            [RBReporter logError:error];
-            [RBReporter presentAlertWithTitle:@"Unkown Error" 
-                                      message:@"Unable to update data listing. Reason unknown."];
+            // !!!: Handle this error however you want.
+            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+            abort();
         }
     }
     
