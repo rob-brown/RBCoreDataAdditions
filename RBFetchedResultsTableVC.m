@@ -26,7 +26,10 @@
 #import "RBCoreDataManager.h"
 
 
-@interface RBFetchedResultsTableVC ()
+@interface RBFetchedResultsTableVC () {
+    @private
+    NSManagedObjectContext * _context;
+}
 
 @property (nonatomic, strong, readwrite) NSFetchedResultsController * fetchedResultsController;
 
@@ -71,48 +74,22 @@
 
 @implementation RBFetchedResultsTableVC
 
-@synthesize tableView;
-@synthesize fetchedResultsController;
-@synthesize context;
+@synthesize tableView                = _tableView;
+@synthesize fetchedResultsController = _fetchedResultsController;
+@synthesize context                  = _context;
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+- (NSManagedObjectContext *)context {
     
-    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
-        [self setContext:[[RBCoreDataManager defaultManager] createMOC]];
+    // Lazy getter.
+    if (!_context) {
+        @synchronized(self) {
+            if (!_context) 
+                [self setContext:[[RBCoreDataManager defaultManager] createMOC]];
+        }
     }
     
-    return self;
+    return _context;
 }
-
-
-#pragma mark - Memory Management
-
-
-- (void)didReceiveMemoryWarning {
-    // Releases the view if it doesn't have a superview.
-    [super didReceiveMemoryWarning];
-    
-    // Release any cached data, images, etc that aren't in use.
-}
-
-#pragma mark - View lifecycle
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view from its nib.
-}
-
-- (void)viewDidUnload {
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    // Return YES for supported orientations
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
-}
-
 
 #pragma mark - Template methods
 
@@ -154,29 +131,10 @@
     return [sectionInfo numberOfObjects];
 }
 
-// Customize the appearance of table view cells.
 - (UITableViewCell *)tableView:(UITableView *)aTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     NSAssert1(NO, @"Required method: %@ not overriden.", NSStringFromSelector(@selector(_cmd)));
     return nil;
 }
-
-/*
- // Override to support conditional editing of the table view.
- - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
- // Return NO if you do not want the specified item to be editable.
- return YES;
- }
- */
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-		
-    }   
-}
-*/
 
 - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
     return NO;

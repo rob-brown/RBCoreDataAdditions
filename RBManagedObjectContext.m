@@ -29,7 +29,7 @@
 
 - (id)initWithStoreCoordinator:(NSPersistentStoreCoordinator *)coordinator {
     
-    NSAssert(nil != coordinator, @"Nil persistent store coordinator.");
+    NSAssert(coordinator, @"Nil persistent store coordinator.");
     
     if ((self = [super init])) {
         
@@ -46,12 +46,18 @@
 
 - (void)mergeChangesFromContextDidSaveNotification:(NSNotification *)notification {
     
-    // Put a break point here to watch when contexts are merging.
-    [super mergeChangesFromContextDidSaveNotification:notification];
+    NSManagedObjectContext * moc = (NSManagedObjectContext *)[notification object];
+    
+    // ???: Do I just need to check the persistent store coordinator?
+    // ???: Would -isEqual: be more appropriate?
+    
+    if ([[moc persistentStoreCoordinator] managedObjectModel] == [[self persistentStoreCoordinator] managedObjectModel]) {
+        // Put a break point here to watch when contexts are merging.
+        [super mergeChangesFromContextDidSaveNotification:notification];
+    }
 }
 
 - (void)dealloc {
-    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 

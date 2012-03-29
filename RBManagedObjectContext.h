@@ -36,7 +36,7 @@
  * Initializes an RBManagedObjectContext with the NSPersistentStoreCoordinator.
  * Also adds itself as an observer for NSManagedObjectContextDidSaveNotifications.
  *
- * @param coordinator. The NSPersistentStoreCoordinator to use with the MOC. 
+ * @param coordinator The NSPersistentStoreCoordinator to use with the MOC. 
  * Must not be nil!
  *
  * @return self

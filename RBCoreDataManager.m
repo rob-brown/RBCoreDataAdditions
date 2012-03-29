@@ -67,6 +67,8 @@ static RBCoreDataManager * _defaultManager = nil;
 
 #endif
 
+- (void)safelyInitializeObject:(id)object withBlock:(dispatch_block_t)block;
+
 @end
 
 
@@ -85,11 +87,7 @@ static RBCoreDataManager * _defaultManager = nil;
         NSError * error = nil;
         
         if ([moc hasChanges] && ![moc save:&error]) {
-            /*
-             Replace this implementation with code to handle the error appropriately.
-             
-             abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. If it is not possible to recover from the error, display an alert panel that instructs the user to quit the application by pressing the Home button.
-             */
+            // !!!: Replace this implementation with code to handle the error appropriately.
             NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
             abort();
         } 
@@ -112,6 +110,14 @@ static RBCoreDataManager * _defaultManager = nil;
     return appName;
 }
 
+- (void)safelyInitializeObject:(id)object withBlock:(dispatch_block_t)block {
+    if (!object) {
+        @synchronized(self) {
+            if (!object) block();
+        }
+    }
+}
+
 
 #pragma mark - Lockless Exclusion Accessors
 
@@ -119,10 +125,12 @@ static RBCoreDataManager * _defaultManager = nil;
 
 - (dispatch_queue_t)defaultMOCQueue {
     
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _defaultMOCQueue = dispatch_queue_create("com.RobertBrown.DefaultMOCQueue", NULL);
-    });
+    if (!_defaultMOCQueue) {
+        @synchronized(self) {
+            if (!_defaultMOCQueue)
+                _defaultMOCQueue = dispatch_queue_create("com.RobertBrown.DefaultMOCQueue", NULL);
+        }
+    }
     
     return _defaultMOCQueue;
 }
@@ -188,15 +196,17 @@ static RBCoreDataManager * _defaultManager = nil;
  */
 - (NSManagedObjectContext *)managedObjectContext {
     
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
+    [self safelyInitializeObject:_managedObjectContext withBlock:^{
         NSPersistentStoreCoordinator * coordinator = [self persistentStoreCoordinator];
         
-        if (coordinator)
-            _managedObjectContext = [[RBManagedObjectContext alloc] initWithStoreCoordinator:coordinator];
-        else
+        if (!coordinator) {
+            // !!!: Handle this error better.
             NSLog(@"Error creating coordinator.");
-    });
+            abort();
+        }
+        
+        _managedObjectContext = [[RBManagedObjectContext alloc] initWithStoreCoordinator:coordinator];
+    }];
     
     return _managedObjectContext;
 }
@@ -207,8 +217,7 @@ static RBCoreDataManager * _defaultManager = nil;
  */
 - (NSManagedObjectModel *)managedObjectModel {
     
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
+    [self safelyInitializeObject:_managedObjectModel withBlock:^{
         NSURL * modelURL = [[NSBundle mainBundle] URLForResource:[[self delegate] modelName]
                                                    withExtension:[[self delegate] modelExtension]];
         if (!modelURL)
@@ -230,7 +239,7 @@ static RBCoreDataManager * _defaultManager = nil;
                       "You may need to restart Xcode if it is in an inconsistent state. ", 
                       modelURL);
         }
-    });
+    }];
     
     return _managedObjectModel;
 }
@@ -242,9 +251,7 @@ static RBCoreDataManager * _defaultManager = nil;
  */
 - (NSPersistentStoreCoordinator *)persistentStoreCoordinator {
     
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        
+    [self safelyInitializeObject:_persistentStoreCoordinator withBlock:^{
         NSURL * storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:[[self delegate] persistentStoreName]];
         
         NSError * error = nil;
@@ -262,10 +269,9 @@ static RBCoreDataManager * _defaultManager = nil;
             [fileManager copyItemAtURL:defaultStoreURL
                                  toURL:storeURL
                                  error:&error];
-            
             if (error) {
-                
-                // Handle the error here.
+                // !!!: Handle the error here.
+                NSLog(@"Error copying seed database: %@", [error localizedDescription]);
                 
                 // Resets the error.
                 error = nil;
@@ -284,39 +290,19 @@ static RBCoreDataManager * _defaultManager = nil;
                        nil];
         }
         
-        [_persistentStoreCoordinator addPersistentStoreWithType:[[self delegate] persistentStoreType]
-                                                  configuration:nil 
-                                                            URL:storeURL 
-                                                        options:options 
-                                                          error:&error];
-        if (error) {
-            /*
-             Replace this implementation with code to handle the error appropriately.
-             
-             abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. If it is not possible to recover from the error, display an alert panel that instructs the user to quit the application by pressing the Home button.
-             
-             Typical reasons for an error here include:
-             * The persistent store is not accessible;
-             * The schema for the persistent store is incompatible with current managed object model.
-             Check the error message to determine what the actual problem was.
-             
-             
-             If the persistent store is not accessible, there is typically something wrong with the file path. Often, a file URL is pointing into the application's resources directory instead of a writeable directory.
-             
-             If you encounter schema incompatibility errors during development, you can reduce their frequency by:
-             * Simply deleting the existing store:
-             [[NSFileManager defaultManager] removeItemAtURL:storeURL error:nil]
-             
-             * Performing automatic lightweight migration by passing the following dictionary as the options parameter: 
-             [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], NSMigratePersistentStoresAutomaticallyOption, [NSNumber numberWithBool:YES], NSInferMappingModelAutomaticallyOption, nil];
-             
-             Lightweight migration will only work for a limited set of schema changes; consult "Core Data Model Versioning and Data Migration Programming Guide" for details.
-             
-             */
-            NSLog(@"Unresolved error %@, %@. Did you forget to migrate your model?", error, [error userInfo]);
+        NSPersistentStore * store = [_persistentStoreCoordinator addPersistentStoreWithType:[[self delegate] persistentStoreType]
+                                                                              configuration:nil 
+                                                                                        URL:storeURL 
+                                                                                    options:options 
+                                                                                      error:&error];
+        if (!store) {
+            // !!!: Handle this error better for your application.
+            NSLog(@"Unable to create persistent store. "
+                  "If you are in development, you probably just need to delete your app and clean your build. "
+                  "If you are in production, you need to handle migration properly. ");
             abort();
         } 
-    });
+    }];
     
     return _persistentStoreCoordinator;
 }
