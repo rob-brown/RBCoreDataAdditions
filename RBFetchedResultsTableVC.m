@@ -155,8 +155,8 @@
     
     @synchronized(self) {
         
-        if (fetchedResultsController)
-            return fetchedResultsController;
+        if (_fetchedResultsController)
+            return _fetchedResultsController;
         
         // Create the fetch request for the entity.
         NSFetchRequest * fetchRequest = [NSFetchRequest new];
@@ -176,14 +176,14 @@
         self.fetchedResultsController = fetchController;
         
         NSError * error = nil;
-        if (![fetchedResultsController performFetch:&error]) {
+        if (![_fetchedResultsController performFetch:&error]) {
             // !!!: Handle this error however you want.
             NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
             abort();
         }
     }
     
-    return fetchedResultsController;
+    return _fetchedResultsController;
 }    
 
 
