@@ -28,7 +28,7 @@
 @interface RBFetchedResultsTableVC : UIViewController <UITableViewDelegate, UITableViewDataSource, NSFetchedResultsControllerDelegate> {
     
     @private 
-    NSFetchedResultsController * fetchedResultsController;
+    NSFetchedResultsController * _fetchedResultsController;
 }
 
 @property (nonatomic, strong) IBOutlet UITableView * tableView;
