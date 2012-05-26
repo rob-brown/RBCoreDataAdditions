@@ -25,11 +25,7 @@
 #import <UIKit/UIKit.h>
 #import <CoreData/CoreData.h>
 
-@interface RBFetchedResultsTableVC : UIViewController <UITableViewDelegate, UITableViewDataSource, NSFetchedResultsControllerDelegate> {
-    
-    @private 
-    NSFetchedResultsController * fetchedResultsController;
-}
+@interface RBFetchedResultsTableVC : UIViewController <UITableViewDelegate, UITableViewDataSource, NSFetchedResultsControllerDelegate>
 
 @property (nonatomic, strong) IBOutlet UITableView * tableView;
 

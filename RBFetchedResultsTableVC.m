@@ -29,6 +29,7 @@
 @interface RBFetchedResultsTableVC () {
     @private
     NSManagedObjectContext * _context;
+    NSFetchedResultsController * _fetchedResultsController;
 }
 
 @property (nonatomic, strong, readwrite) NSFetchedResultsController * fetchedResultsController;
@@ -155,8 +156,8 @@
     
     @synchronized(self) {
         
-        if (fetchedResultsController)
-            return fetchedResultsController;
+        if (_fetchedResultsController)
+            return _fetchedResultsController;
         
         // Create the fetch request for the entity.
         NSFetchRequest * fetchRequest = [NSFetchRequest new];
@@ -173,17 +174,18 @@
                                                                                              sectionNameKeyPath:[self sectionNameKeyPath] 
                                                                                                       cacheName:[self cacheName]];
         fetchController.delegate = self;
-        self.fetchedResultsController = fetchController;
+        _fetchedResultsController = fetchController;
         
         NSError * error = nil;
-        if (![fetchedResultsController performFetch:&error]) {
+        
+        if (![_fetchedResultsController performFetch:&error]) {
             // !!!: Handle this error however you want.
             NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
             abort();
         }
     }
     
-    return fetchedResultsController;
+    return _fetchedResultsController;
 }    
 
 
