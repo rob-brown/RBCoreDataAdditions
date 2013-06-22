@@ -68,8 +68,6 @@ typedef void(^RBMOCBlock)(NSManagedObjectContext * moc);
  */
 - (void)accessDefaultMOCAsync:(RBMOCBlock)block;
 
-- (void)accessDefaultMOCSyncChecked:(RBMOCBlock)block;
-
 #endif
 
 /**

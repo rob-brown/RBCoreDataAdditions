@@ -82,7 +82,7 @@ static RBCoreDataManager * _defaultManager = nil;
 
 - (void)saveContext {
     
-    [self accessDefaultMOCSyncChecked:^(NSManagedObjectContext * moc) {
+    [self accessDefaultMOCAsync:^(NSManagedObjectContext * moc) {
         
         NSError * error = nil;
         
@@ -133,13 +133,6 @@ static RBCoreDataManager * _defaultManager = nil;
     }
     
     return _defaultMOCQueue;
-}
-
-- (void)accessDefaultMOCSyncChecked:(RBMOCBlock)block {
-    
-    dispatch_sync_checked([self defaultMOCQueue], ^{
-        block([self managedObjectContext]);
-    });
 }
 
 - (void)accessDefaultMOCAsync:(RBMOCBlock)block {
